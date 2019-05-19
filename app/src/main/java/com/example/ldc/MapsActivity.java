@@ -20,6 +20,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
@@ -29,11 +35,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     TextView data;
     Spinner spinner;
     String[] items;
+    DataBase dataBase;
+    DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        //Firebase
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("DataBase");
+        dataBase = new DataBase();
 
 
 
@@ -44,55 +57,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         spinner.setAdapter(adapter);
 
 
-       /* spinner = (Spinner) findViewById(R.id.spinner);
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String lMtd = spinner.getSelectedItem().toString();
-
-                Toast.makeText(getApplicationContext(),lMtd, Toast.LENGTH_LONG).show();
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });*/
 
         Start = (Button) findViewById(R.id.button);
         ActivityCompat.requestPermissions(MapsActivity.this,  new String[]{Manifest.permission.ACCESS_FINE_LOCATION},876);
+
 
         Start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String lMtd = spinner.getSelectedItem().toString();
-               // String i = lMtd;
+
+                Calendar calendar = Calendar.getInstance();
+                String currentDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
+
+                Date date = new Date(System.currentTimeMillis());
+
+                data = (TextView) findViewById(R.id.textView);
 
                 switch (lMtd){
                     case "GPS":
                         TrackingGps trackingGps = new TrackingGps(getApplicationContext());
                         Location location = trackingGps.getLocation();
                         if(location != null){
-                            data = (TextView) findViewById(R.id.textView);
-                            data.setText(location.toString());
+
+                            data.setText(currentDate+ "\n"+ location.toString());
                             double lat = location.getLatitude();
                             double lon = location.getLongitude();
                             Toast.makeText(getApplicationContext(),"LAT: "+ lat +" \n LON: " + lon, Toast.LENGTH_LONG).show();
+
+                            dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                            dataBase.setData(data.getText().toString().trim());
+
+                          //  Date date = new Date(System.currentTimeMillis());
+                            databaseReference.child(String.format(String.valueOf(date)))
+                                    .setValue(dataBase);
 
                         }
                         break;
 
                     case "Cellular":
+                        data.setText(currentDate);
                         Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
+
+                        dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                        dataBase.setData(data.getText().toString().trim());
+
+                       /// Date date = new Date(System.currentTimeMillis());
+                        databaseReference.child(String.format(String.valueOf(date)))
+                                .setValue(dataBase);
 
                         break;
 
 
                     case "Cell+WiFi":
+                        data.setText(currentDate);
                         Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
+
+                        dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                        dataBase.setData(data.getText().toString().trim());
+
+                      ////  Date date = new Date(System.currentTimeMillis());
+                        databaseReference.child(String.format(String.valueOf(date)))
+                                .setValue(dataBase);
+
                         break;
+
+
+
+
+
 
                 }
 
@@ -105,6 +139,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
     }
 
 
@@ -129,6 +165,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng latLng = new LatLng(lat, lon);
             mMap.addMarker(new MarkerOptions().position(latLng).title("your current position"));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.getUiSettings().setZoomControlsEnabled(true);
+            mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
         }
     }
 }

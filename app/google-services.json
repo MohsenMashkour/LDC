@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "74315599525",
+    "firebase_url": "https://ldcfirebaseproject.firebaseio.com",
+    "project_id": "ldcfirebaseproject",
+    "storage_bucket": "ldcfirebaseproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74315599525:android:0de39f207b72dc0a",
+        "android_client_info": {
+          "package_name": "com.example.ldc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "74315599525-geq1ubpje9hqingh7jh83nslqsk18dmc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ldc",
+            "certificate_hash": "476b9990184dc329b8e9e9f2137e36aa91369b77"
+          }
+        },
+        {
+          "client_id": "74315599525-sk8f3chsjoond2jnahcn0c38vdtt5o0u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBM-n_nQjhBB7jG2E0kku7EU9zTjOHJP8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "74315599525-sk8f3chsjoond2jnahcn0c38vdtt5o0u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
