@@ -2,6 +2,7 @@ package com.example.ldc;
 
 import android.Manifest;
 import android.location.Location;
+import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -38,10 +39,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DataBase dataBase;
     DatabaseReference databaseReference;
 
+    private CountDownTimer countDownTimer;
+    private long timeLeft = 900000;
+    private boolean timerRun;
+
+    Calendar calendar = Calendar.getInstance();
+    String currentDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
 
         //Firebase
@@ -49,8 +58,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         dataBase = new DataBase();
 
 
-
-        spinner = (Spinner) findViewById(R.id.spinner);
+        //spinner
+        spinner = findViewById(R.id.spinner);
         items = getResources().getStringArray(R.array.LocalizationMethods);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -58,8 +67,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
+        //start process
+        Start = findViewById(R.id.button);
 
-        Start = (Button) findViewById(R.id.button);
+        data = (TextView) findViewById(R.id.textView);
+
         ActivityCompat.requestPermissions(MapsActivity.this,  new String[]{Manifest.permission.ACCESS_FINE_LOCATION},876);
 
 
@@ -68,29 +80,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 String lMtd = spinner.getSelectedItem().toString();
 
-                Calendar calendar = Calendar.getInstance();
-                String currentDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
 
-                Date date = new Date(System.currentTimeMillis());
 
-                data = (TextView) findViewById(R.id.textView);
+                //Date dat1 = new Date(System.currentTimeMillis());
 
-                switch (lMtd){
+
+
+                switch (lMtd) {
                     case "GPS":
-                        TrackingGps trackingGps = new TrackingGps(getApplicationContext());
+                       // TrackingGps trackingGps = new TrackingGps(getApplicationContext());
+
+                        TrackingGps trackingGps = new TrackingGps(getApplicationContext(), new TrackingGps.LocationChanged() {
+
+                            @Override
+                            public void locationChanged(Location location) {
+                                if (location != null) {
+                                    data.setText(location.toString());
+                                    double lat = location.getLatitude();
+                                    double lon = location.getLongitude();
+                                     Toast.makeText(getApplicationContext(), "LAT: " + lat + " \n LON: " + lon, Toast.LENGTH_LONG).show();
+
+                                    dataBase.setId("gps");
+                                    dataBase.setData(data.getText().toString().trim());
+
+
+                                    databaseReference.child(String.format(String.valueOf(System.currentTimeMillis())))
+                                            .setValue(dataBase);
+
+                                }
+                            }
+                        });
+
                         Location location = trackingGps.getLocation();
+
                         if(location != null){
 
                             data.setText(currentDate+ "\n"+ location.toString());
                             double lat = location.getLatitude();
                             double lon = location.getLongitude();
-                            Toast.makeText(getApplicationContext(),"LAT: "+ lat +" \n LON: " + lon, Toast.LENGTH_LONG).show();
+                            //Toast.makeText(getApplicationContext(),"LAT: "+ lat +" \n LON: " + lon, Toast.LENGTH_LONG).show();
 
-                            dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                            dataBase.setId("gps");
                             dataBase.setData(data.getText().toString().trim());
 
-                          //  Date date = new Date(System.currentTimeMillis());
-                            databaseReference.child(String.format(String.valueOf(date)))
+
+                            databaseReference.child(String.format(String.valueOf(System.currentTimeMillis())))
                                     .setValue(dataBase);
 
                         }
@@ -100,11 +134,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         data.setText(currentDate);
                         Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
 
-                        dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                        dataBase.setId("Cellular");
                         dataBase.setData(data.getText().toString().trim());
 
-                       /// Date date = new Date(System.currentTimeMillis());
-                        databaseReference.child(String.format(String.valueOf(date)))
+
+                        databaseReference.child(String.format(String.valueOf(System.currentTimeMillis())))
                                 .setValue(dataBase);
 
                         break;
@@ -114,11 +148,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         data.setText(currentDate);
                         Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
 
-                        dataBase.setId(String.valueOf(System.currentTimeMillis()));
+                        dataBase.setId("Cell+WiFi");
                         dataBase.setData(data.getText().toString().trim());
 
-                      ////  Date date = new Date(System.currentTimeMillis());
-                        databaseReference.child(String.format(String.valueOf(date)))
+
+                        databaseReference.child(String.format(String.valueOf(System.currentTimeMillis())))
                                 .setValue(dataBase);
 
                         break;

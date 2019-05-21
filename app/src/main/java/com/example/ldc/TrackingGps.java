@@ -13,10 +13,23 @@ import android.widget.Toast;
 
 public class TrackingGps implements LocationListener {
 
+    public interface LocationChanged{
+        void locationChanged(Location location);
+    }
+
     Context context;
+    private LocationChanged mListener;
+
     public TrackingGps(Context c){
         context = c;
+        mListener = null;
     }
+
+    public TrackingGps(Context c, LocationChanged listener){
+        context = c;
+        mListener = listener;
+    }
+
     public Location getLocation(){
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             Toast.makeText(context,"PLEASE GIVE THE PERMITION",Toast.LENGTH_LONG).show();
@@ -38,6 +51,9 @@ public class TrackingGps implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+       //Toast.makeText(context, "Location changed", Toast.LENGTH_SHORT).show();
+        if(mListener != null)
+            mListener.locationChanged(location);
 
     }
 
