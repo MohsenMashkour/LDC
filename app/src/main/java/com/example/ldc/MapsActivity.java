@@ -2,7 +2,6 @@ package com.example.ldc;
 
 import android.Manifest;
 import android.location.Location;
-import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -20,6 +19,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -27,9 +27,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     Button Start;
@@ -38,10 +39,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String[] items;
     DataBase dataBase;
     DatabaseReference databaseReference;
+    Marker marker;
 
-    private CountDownTimer countDownTimer;
-    private long timeLeft = 900000;
-    private boolean timerRun;
+    //private CountDownTimer countDownTimer;
+    //private long timeLeft = 900000;
+    //private boolean timerRun;
 
     Calendar calendar = Calendar.getInstance();
     String currentDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
@@ -52,7 +54,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_main);
 
 
-
         //Firebase
         databaseReference = FirebaseDatabase.getInstance().getReference().child("DataBase");
         dataBase = new DataBase();
@@ -61,18 +62,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //spinner
         spinner = findViewById(R.id.spinner);
         items = getResources().getStringArray(R.array.LocalizationMethods);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,items);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-
 
 
         //start process
         Start = findViewById(R.id.button);
 
-        data = (TextView) findViewById(R.id.textView);
+        data = findViewById(R.id.textView);
 
-        ActivityCompat.requestPermissions(MapsActivity.this,  new String[]{Manifest.permission.ACCESS_FINE_LOCATION},876);
+        ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 876);
 
 
         Start.setOnClickListener(new View.OnClickListener() {
@@ -81,24 +81,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String lMtd = spinner.getSelectedItem().toString();
 
 
-
                 //Date dat1 = new Date(System.currentTimeMillis());
-
 
 
                 switch (lMtd) {
                     case "GPS":
-                       // TrackingGps trackingGps = new TrackingGps(getApplicationContext());
+                        // TrackingGps trackingGps = new TrackingGps(getApplicationContext());
 
                         TrackingGps trackingGps = new TrackingGps(getApplicationContext(), new TrackingGps.LocationChanged() {
 
                             @Override
                             public void locationChanged(Location location) {
                                 if (location != null) {
-                                    data.setText(location.toString());
-                                    double lat = location.getLatitude();
-                                    double lon = location.getLongitude();
-                                     Toast.makeText(getApplicationContext(), "LAT: " + lat + " \n LON: " + lon, Toast.LENGTH_LONG).show();
+
+                                    String info = locationToString(location);
+                                    data.setText(info);
+
+                                    // data.setText(location.toString());
+                                    //double lat = location.getLatitude();
+                                    //double lon = location.getLongitude();
+
+
+                                    //Toast.makeText(getApplicationContext(), "LAT: " + lat + " \n LON: " + lon, Toast.LENGTH_LONG).show();
 
                                     dataBase.setId("gps");
                                     dataBase.setData(data.getText().toString().trim());
@@ -106,6 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                     databaseReference.child(String.format(String.valueOf(System.currentTimeMillis())))
                                             .setValue(dataBase);
+                                    onMarkerUpdate();
 
                                 }
                             }
@@ -113,11 +118,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         Location location = trackingGps.getLocation();
 
-                        if(location != null){
-
-                            data.setText(currentDate+ "\n"+ location.toString());
-                            double lat = location.getLatitude();
-                            double lon = location.getLongitude();
+                        if (location != null) {
+                            String info = locationToString(location);
+                            data.setText(info);
+                            // data.setText(currentDate+ "\n"+ location.toString());
+                            // double lat = location.getLatitude();
+                            // double lon = location.getLongitude();
                             //Toast.makeText(getApplicationContext(),"LAT: "+ lat +" \n LON: " + lon, Toast.LENGTH_LONG).show();
 
                             dataBase.setId("gps");
@@ -132,7 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     case "Cellular":
                         data.setText(currentDate);
-                        Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), lMtd + " selected", Toast.LENGTH_SHORT).show();
 
                         dataBase.setId("Cellular");
                         dataBase.setData(data.getText().toString().trim());
@@ -146,7 +152,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     case "Cell+WiFi":
                         data.setText(currentDate);
-                        Toast.makeText(getApplicationContext(),lMtd + " selected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), lMtd + " selected", Toast.LENGTH_SHORT).show();
 
                         dataBase.setId("Cell+WiFi");
                         dataBase.setData(data.getText().toString().trim());
@@ -158,13 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         break;
 
 
-
-
-
-
                 }
-
-
 
 
             }
@@ -177,6 +177,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
+    // @Override
+    //  public void onLocationChanged(Location location) {
+    //      String info = locationToString(location);
+    //      data.setText(info);
+    //  }
+
+    private String locationToString(Location location) {
+        Calendar locationDate = Calendar.getInstance();
+        locationDate.setTimeInMillis(location.getTime());
+        return String.format(Locale.getDefault(),
+                "Lat: %.2f, Lon: %.2f, Accurracy: %.2f, time: %d (%02d.%02d.%d %02d:%02d:%02d)",
+                location.getLatitude(), location.getLongitude(), location.getAccuracy(), location.getTime(),
+                locationDate.get(Calendar.DAY_OF_MONTH), locationDate.get(Calendar.MONTH), locationDate.get(Calendar.YEAR),
+                locationDate.get(Calendar.HOUR_OF_DAY), locationDate.get(Calendar.MINUTE), locationDate.get(Calendar.SECOND));
+    }
 
 
     /**
@@ -193,14 +209,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         TrackingGps trackingGps = new TrackingGps(getApplicationContext());
         Location location = trackingGps.getLocation();
-        if(location != null){
+        if (location != null) {
             double lat = location.getLatitude();
             double lon = location.getLongitude();
             LatLng latLng = new LatLng(lat, lon);
-            mMap.addMarker(new MarkerOptions().position(latLng).title("your current position"));
+           marker = mMap.addMarker(new MarkerOptions().position(latLng).title("your current position"));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.getUiSettings().setZoomControlsEnabled(true);
             mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+        }
+    }
+
+
+
+    private void onMarkerUpdate() {
+        TrackingGps trackingGps = new TrackingGps(getApplicationContext());
+        Location location = trackingGps.getLocation();
+        if (location != null) {
+            double lat = location.getLatitude();
+            double lon = location.getLongitude();
+            LatLng latLng = new LatLng(lat, lon);
+
+
+            if(marker != null)
+            {
+                marker.remove();
+
+              marker =  mMap.addMarker(new MarkerOptions().position(latLng).title("your current position"));
+               // mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            }
+
+           // Toast.makeText(getApplicationContext(),"marker Updated", Toast.LENGTH_LONG).show();
+
         }
     }
 }

@@ -38,7 +38,7 @@ public class TrackingGps implements LocationListener {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         boolean enableGPS = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if(enableGPS){
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,4500,1,this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000,0,this);
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             return location;
 
@@ -54,6 +54,8 @@ public class TrackingGps implements LocationListener {
        //Toast.makeText(context, "Location changed", Toast.LENGTH_SHORT).show();
         if(mListener != null)
             mListener.locationChanged(location);
+
+
 
     }
 
